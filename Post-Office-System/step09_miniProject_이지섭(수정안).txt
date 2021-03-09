@@ -1,0 +1,74 @@
+[물품 분류 및 관리 시스템 v1.1]
+
+1. 주제 : 우편 창고 분류 시스템 - 국내 우편과 국제 우편
+
+2. 구성 : 
+2.1) 구조
+
+	- DB : 
+		1) MailStock(외부로부터 들어온 우편, 창고 특성을 반영하여 스택 구조) : CRUD 구현, 분류 전에는 외부에서 온 우편을 생성, 검색, 수정, 삭제 가능
+			2-1) LocalMailStock(국내 우편으로 분류된 DB) : CR 구현, 분류된 우편은 MailStock으로부터 받아온 우편을 생성하고 검색함
+			2-2) InternationalMailStock(국제 우편으로 분류된 DB) : CR 구현, 분류된 우편은 MailStock으로부터 받아온 우편을 생성하고 검색함
+			2-3) UndefinedMailStock(분류를 못한 우편들을 모아놓는 DB) : CR 구현
+				3-1) RecordLocalMail(국내 우편 전송 기록 DB) : CR 구현, 분류된 우편을 받아서 새롭게 추가하고, 우편 특성상 기록이 매우 중요함으로 읽기까지만 가능하도록 제한 
+				3-2) RecordInternationalMail(국제 우편 전송 기록 DB) : CR 구현, 분류된 우편을 받아서 새롭게 추가하고, 우편 특성상 기록이 매우 중요함으로 읽기까지만 가능하도록 제한
+	
+	- DTO : (상위클래스)Mail-(하위클래스)LocalMail, InternationalMail
+		- Mail - 보내는 사람, 보내는 사람 주소, 받는 사람, 받는 사람 주소
+			- MailStockDto - 메일의 세부적인 내용 포함되어 있음
+				- LocalMail - MailStockDto의 str1과 str2를 보내는 우편번호, 받는 우편번호로 받아 들임
+				- InternationalMail - MailStockDto의 str1과 str2를 보내는 국가명, 받는 사람 국가명으로 받아 들임
+		
+	- DAO : CRUD 기능 구현에 관한 설명 - 따로 패키지를 제작하지는 않고 DB에 포함되어 있음
+		- MailStock (스택구조)
+			a. push 을 활용한 외부로부터 온 우편추가
+			b. pop 을 통해 들어온 물품 확인 및 빠진 물품 리턴
+		
+		- LocalMailStock, InternationalMailStock (큐구조)
+			a. add 를 통해 송신 대기 중인 우편을 항목에 추가
+			b. poll 을 이용해 순차적으로 우편 송신
+		
+		- RecordLocalMail(국내 우편 전송 기록), RecordInternationalMail(국제 우편 전송 기록) (어레이리스트)
+			a. 국내 우편, 국제 우편 전송 기록 벋기	
+	
+	- Model(Service) 주요 기능 :
+		- MailStock.b 에서 받은 물품을 분류하는 메소드
+		- 분류한 메소드를 DB(LocalMailStock과 InternationalMailStock)에 다시 넣는 메소드
+			
+		- LocalMailStock 에서 우편을 전송하는 메소드
+		- InternationalMailStock 에서 우편을 전송하는 메소드
+		
+		- 전송한 우편을 전송 기록 DB에 넣는 메소드
+		
+		- 특정 우편이 어디에 위치해있는 지 검색하는 메소드
+	
+	- Controller : Model과 View 영역 연결 및 예외 처리
+	
+	- EndView : 기능에 대한 출력 기능
+	- FailView : 실패에 대한 문구 출력 기능
+	- StartView : 입력값에 대한 실행 기능
+	
+	- Exception: 기타 사용자 정의 예외 처리
+
+2.2) 기능 : 각 DB의 CRUD 기능과 조회
+2.3) 동작 순서 및 안내
+	1) 외부에서 온 우편을 창고 역할을 하는 DB로 저장
+	2) 창고 역할을 하는 DB 내 우편을 분류하여 국제/국내 우편 DB에 다시 저장
+	3) 국제/국내 우편 DB에 있는 우편물 송신
+	4) 송신한 우편의 기록을 위해 보낸 우편은 기록 DB에 저장
+
+3. 개발 정보 :
+3.1) 구성원 : 이지섭
+3.2) 담당 : 기획 및 코딩
+
+4. 학습 목표 :
+4.1) 다양한 DTO 구성 / 다양한 DB 구성 / DB간 연계를 설계
+4.2) CRUD 기능 메소드 제작
+4.3) 정규식 표현을 이용한 분류 로직 제작
+4.4) 큐와 스택을 활용한 우편 유통 구현
+
+5. 아쉬운 점 및 보완이 필요한 사항:
+5.1) 예외에 대한 부분을 최종적으로 검토하지 못함
+5.2) 입력 받는 값을 반영하여 프로그램과 활발한 상호작용을 유도하면 좋을 것으로 판단함
+5.3) 분류하지 못한 우편은 결과적으로 송신을 해야 함으로, 수정 후 송신하는 기능이 있어야 현실적일 것 같음
+5.4) 여러 종류의 DB들을 사용하다보니 구조가 복잡해졌고 상대적으로 많은 DTO가 만들어진 만큼, 추후 진행시 단순한 구조로 설계할 필요성을 느낌

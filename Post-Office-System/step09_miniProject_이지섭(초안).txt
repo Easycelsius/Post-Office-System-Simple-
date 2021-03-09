@@ -1,0 +1,60 @@
+[물품 분류 및 관리 시스템 v1]
+
+1. 주제 : 우편 창고 분류 시스템 - 국내 우편과 국제 우편
+
+2. 구성 : 
+2.1) 구조
+
+	- DB : MailStock(외부로부터 들어온 우편, 창고 특성을 반영하여 스택 구조), LocalMailStock(국내 우편으로 분류된 항목), InternationalMailStock(국제 우편으로 분류된 항목), RecordLocalMail(국내 우편 전송 기록), RecordInternationalMail(국제 우편 전송 기록)
+	
+	- DTO : (상위클래스)Mail-(하위클래스)LocalMail, InternationalMail
+		- Mail - 보내는 사람, 보내는 사람 주소, 받는 사람, 받는 사람 주소
+			- LocalMail - 추가된 변수 : 보내는 우편번호, 받는 우편번호
+			- InternationalMail - 추가된 변수 : 보내는 국가명, 받는 사람 국가명
+		- MailStock - 접수번호, ... (더 큰 범주)
+		
+	- DAO : 메소드로 CRUD 기능 구현
+		- MailStock
+			a. push 을 활용한 외부로부터 온 우편추가
+			b. pop 을 통해 들어온 물품 확인 및 빠진 물품 리턴
+		
+		- LocalMailStock, InternationalMailStock
+			a. add 를 통해 송신 대기 중인 우편을 항목에 추가
+			b. poll 을 이용해 순차적으로 우편 송신
+		
+		- RecordLocalMail(국내 우편 전송 기록), RecordInternationalMail(국제 우편 전송 기록)
+			a. 국내 우편, 국제 우편 전송 기록 벋기	
+	
+	- Model(Service) :
+		- MailStock.b 에서 받은 물품을 분류하는 메소드
+		- 분류한 메소드를 DB(LocalMailStock과 InternationalMailStock)에 다시 넣는 메소드
+			
+		- LocalMailStock 에서 우편을 전송하는 메소드
+		- InternationalMailStock 에서 우편을 전송하는 메소드
+		
+		- 전송한 메일을 전송 기록 DB에 넣는 메소드
+	
+	- Controller : Model과 View 영역 연결 및 예외 처리
+	
+	- EndView : 기능에 대한 출력 기능
+	- FailView : 실패에 대한 문구 출력 기능
+	- StartView : 입력값에 대한 실행 기능
+	
+	- Exception: 기타 사용자 정의 예외 처리
+
+2.2) 기능 : 각 DB의 CRUD 기능
+2.3) 동작 순서 및 안내
+	1) 외부에서 온 우편을 DB로 저장
+	2) DB에 있는 우편을 분류하여 정해진 DB에 다시 저장
+	3) 정해진 DB에 있는 우편물 송신
+	4) 송신한 우편물 기록을 위해 보낸 우편은 DB에 저장
+
+3. 개발 정보 :
+3.1) 구성원 : 이지섭
+3.2) 담당 : 기획 및 코딩
+
+4. 학습 목표 :
+4.1) 국내 우편과 국제 우편에 대한 DTO 구성
+4.2) CRUD 기능 메소드 제작
+4.3) instanceof를 이용한 분류
+4.4) 큐와 스택을 활용한 효율적인 유통 관리 구현
